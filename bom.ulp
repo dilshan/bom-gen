@@ -1,0 +1,123 @@
+/////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2015 Dilshan R Jayakody.
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+/////////////////////////////////////////////////////////////////////////////////
+
+if(board) board(B)
+{
+	string outputFileName = dlgFileSave("Save output file", filesetext(B.name, ".html"), "*.html");
+	
+	if(outputFileName == "")
+	{
+		exit(0);
+	}
+	
+	string partName[];
+	string partIds[];
+	string partDesc[];
+	int partCount[], totalpartCount = 0, partIndex = 0;	
+	char isAdd;	
+	
+	B.elements(E)
+	{
+		totalpartCount++;
+		isAdd = 0;
+		
+		for(int i = 0; i < partIndex; i++)
+		{
+			if(partName[i] == E.value)
+			{
+				isAdd = 1;
+				partIds[i] = partIds[i] + ", " + E.name;
+				partCount[i] = (partCount[i] + 1);
+				break;
+			}			
+		}
+			
+		if(isAdd == 0)
+		{
+			partIds[partIndex] = E.name;
+			partCount[partIndex] = 1;
+			partDesc[partIndex] = E.package.name;
+			partName[partIndex++] = E.value;				
+		}
+		
+		if(partIndex > 0)
+		{
+			output(outputFileName)
+			{
+				printf("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n");
+				printf("<html><head>\n");
+				printf("<meta name=\"generator\" content=\"BOM-GEN for EAGLE\">");
+				printf("<meta content=\"text/html; charset=ISO-8859-1\" http-equiv=\"content-type\"><title>BOM - %s</title>\n", filename(B.name));
+				printf("</head><body>\n");				
+				printf("<h2 style=\"font-family: Arial;\">Bill of materials for %s</h2>\n", filename(B.name));
+				printf("<table style=\"text-align: left; font-family: Arial;\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">\n");
+				printf("<tbody>\n");
+				printf("<tr>\n");
+				printf("<td style=\"font-weight: bold; width: 110px;\"><font size=\"-1\">Last update:</font></td>\n");
+				printf("<td style=\"width: 5px;\"></td>\n");
+				printf("<td style=\"width: 843px;\"><font size=\"-1\">%s</font></td>\n", t2string(time()));
+				printf("</tr>\n");
+				printf("<tr>\n");
+				printf("<td style=\"font-weight: bold; width: 110px;\"><font size=\"-1\">EAGLE version:</font></td>\n");
+				printf("<td style=\"width: 5px;\"></td>\n");
+				printf("<td style=\"width: 843px;\"><font size=\"-1\">%s</font></td>\n", EAGLE_SIGNATURE);
+				printf("</tr>\n");
+				printf("</tbody>\n");
+				printf("</table>\n");
+				
+				printf("<br style=\"font-family: Arial;\">\n");
+				printf("<table style=\"text-align: left; font-family: Arial;\" border=\"1\" cellpadding=\"2\" cellspacing=\"2\">\n");
+				printf("<tbody>\n");
+				printf("<tr>\n");
+				printf("<td style=\"width: 80px; font-weight: bold;\"><font size=\"-1\">Item No.</font></td>\n");
+				printf("<td style=\"width: 175px; font-weight: bold;\"><font size=\"-1\">Part value</font></td>\n");
+				printf("<td style=\"width: 457px; font-weight: bold;\"><font size=\"-1\">Description</font></td>\n");
+				printf("<td style=\"width: 170px; font-weight: bold;\"><font size=\"-1\">ID(s)</font></td>\n");
+				printf("<td style=\"width: 60px; font-weight: bold;\"><font size=\"-1\">Quantity</font></td>\n");
+				printf("</tr>\n");
+										
+				for(int i = 0; i < partIndex; i++)
+				{
+					printf("<tr>\n");
+					printf("<td style=\"width: 80px;\"><font size=\"-1\">%d</font></td>\n", (i + 1));
+					printf("<td style=\"width: 175px;\"><font size=\"-1\">%s</font></td>\n", partName[i]);
+					printf("<td style=\"width: 457px;\"><font size=\"-1\">%s</font></td>\n", partDesc[i]);
+					printf("<td style=\"width: 170px;\"><font size=\"-1\">%s</font></td>\n", partIds[i]);
+					printf("<td style=\"width: 60px;\"><font size=\"-1\">%d</font></td>\n", partCount[i]);
+					printf("</tr>\n");
+				}
+				
+				printf("<tr>\n");
+				printf("<td style=\"text-align: right;\" colspan=\"4\" rowspan=\"1\"><font size=\"-1\">Total</font></td>\n");
+				printf("<td><font size=\"-1\">%d</font></td>\n", totalpartCount);
+				printf("</tr>\n");
+				printf("</tbody>\n");
+				printf("</table>\n");
+				printf("</body></html>");
+			}
+		}	
+	}
+}
+else
+{
+	dlgMessageBox("!This script support for board view only. Switch to board view and run this script to generate the BOM.", "&OK");
+}
