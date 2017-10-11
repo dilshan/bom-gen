@@ -1,0 +1,108 @@
+/////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2015 Dilshan R Jayakody.
+// 
+// rev. 11-Oct-2017 - Alessio Occhiodoro:
+// 1.  creates a plain .txt file
+// 2. if a component has no set value, is then catalogued by desrtiption
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+/////////////////////////////////////////////////////////////////////////////////
+
+if(board) board(B)
+{
+	string outputFileName = dlgFileSave("Save BOM file", filesetext(B.name, ".txt"), "*.txt");
+
+	if(outputFileName == "")
+	{
+		exit(0);
+	}
+	
+	string partVal[];
+	string partIds[];
+	string partDesc[];
+	int partCount[], totalpartCount = 0, partIndex = 0;	
+	char isAdd;	
+	
+	B.elements(E)
+	{
+		totalpartCount++;
+		isAdd = 0;
+		
+		for(int i = 0; i < partIndex; i++)
+		{
+			if(partVal[i] != "")
+			{
+				if(partVal[i] == E.value)
+				{
+					isAdd = 1;
+					partIds[i] = partIds[i] + ", " + E.name;
+					partCount[i] = (partCount[i] + 1);
+					break;
+				}
+			}
+			else
+			{
+				if(partDesc[i] == E.package.name)
+				{
+					isAdd = 1;
+					partIds[i] = partIds[i] + ", " + E.name;
+					partCount[i] = (partCount[i] + 1);
+					break;
+				}
+
+			}
+
+		}
+			
+		if(isAdd == 0)
+		{
+			partIds[partIndex] = E.name;
+			partCount[partIndex] = 1;
+			partDesc[partIndex] = E.package.name;
+			partVal[partIndex++] = E.value;				
+		}
+		
+		if(partIndex > 0)
+		{
+			output(outputFileName)
+			{
+				printf("Bill of materials for %s\n", filename(B.name));
+				printf("Generated on: %s\n", t2string(time()));
+				printf("EAGLE version: %s\n", EAGLE_SIGNATURE);
+				printf("\n");
+				printf("Value	Qty	Description");
+				printf("\n");
+				printf("\n");
+										
+				for(int i = 0; i < partIndex; i++)
+				{
+					printf("%s	%d	%s", partVal[i], partCount[i], partDesc[i]);
+					printf("\n");
+				}
+				
+				printf("\n");
+				printf("TOTAL number of parts: %d ", totalpartCount);
+			}
+		}	
+	}
+}
+else
+{
+	dlgMessageBox("!This script support for board view only. Switch to board view and run this script to generate the BOM.", "&OK");
+}
